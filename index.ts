@@ -32,6 +32,8 @@ zx.verbose = true;
 const repoDescriptionPromise = fetchRepoDescriptionMap();
 await checkComfyActivated();
 
+
+
 // read env/parameters
 console.log("Fetch Current Github User...");
 const user = (await gh.users.getAuthenticated()).data;
@@ -63,6 +65,8 @@ const FORK_PREFIX =
 
 console.log(`GIT_USER: ${GIT_USERNAME} <${GIT_USEREMAIL}>`);
 
+const prlist: string[] = [];
+
 // main
 {
   const envRepos =
@@ -86,6 +90,12 @@ console.log(`GIT_USER: ${GIT_USERNAME} <${GIT_USEREMAIL}>`);
   for await (const upstreamUrl of repos) {
     await ComfyRegistryPR(upstreamUrl);
   }
+
+  for(const pr of prlist){
+    console.log("- ", pr)
+  }
+
+  console.log("total prs: ", prlist.length)
 }
 
 async function checkComfyActivated() {
@@ -142,7 +152,7 @@ async function ComfyRegistryPR(upstreamUrl: string) {
   // Repo Define
   const upstream = parseOwnerRepo(upstreamUrl);
   const salt = argv.salt || process.env.SALT || "m3KMgZ2AeZGWYh7W";
-  console.log(`* Change env.SALT=${salt} will fork into a different repo`);
+  // console.log(`* Change env.SALT=${salt} will fork into a different repo`);
   const repo_hash = md5(
     `${salt}-${user.name}-${upstream.owner}/${upstream.repo}`
   ).slice(0, 8);
@@ -156,7 +166,7 @@ async function ComfyRegistryPR(upstreamUrl: string) {
   // console.log("PR_SRC: ", forkSSHUrl);
   // console.log("PR_DST: ", upstreamUrl);
   // console.log(forkSSHUrl);
-  console.log("Cleaning the pr before run");
+  // console.log("Cleaning the pr before run");
   const dir = `prs/${src.repo}`;
   await rm(dir, { recursive: true }).catch(() => null);
 
@@ -170,6 +180,9 @@ async function ComfyRegistryPR(upstreamUrl: string) {
   //   );
   //   choose.match(/y/i) || DIE("User Aborted");
   //   FORK
+  try {
+    
+  
   await fork(upstream, src);
 
   // prInfos
@@ -181,11 +194,14 @@ async function ComfyRegistryPR(upstreamUrl: string) {
   ).map((content) => ({ ...content, src, dst: upstream }));
 
   console.log("PR Infos");
-  console.log(chalk.green(yaml.stringify({ PR_REQUESTS })));
+  // console.log(chalk.green(yaml.stringify({ PR_REQUESTS })));
   // prs
   await Promise.all(PR_REQUESTS.map((prInfo) => pr({ ...prInfo })));
 
   console.log("ALL DONE");
+} catch (error) {
+    console.log("error message in try statement: ", error)
+}
 }
 
 async function pr({
@@ -240,6 +256,8 @@ async function pr({
       // draft: true,
     })
     .catch(async (e) => {
+      console.log("error message e: ", e)
+      console.log("error message e.message: ", e.message)
       if (e.message.match("A pull request already exists for")) {
         console.log("PR Existed ", e);
         // WARN: will search all prs
@@ -270,7 +288,8 @@ async function pr({
       }
       throw e;
     });
-  console.log("PR OK", pr_result?.data.html_url);
+  console.log("- ", pr_result?.data.html_url);
+  prlist.push(pr_result?.data.html_url);
 }
 
 async function add_pyproject(
@@ -315,7 +334,7 @@ git commit -am ${`chore(${branch}): ${title}`} && \
 git push "${forkUrl}" ${branch}:${branch}
 `;
   const branchUrl = `https://github.com/${repo.owner}/${repo.repo}/tree/${branch}`;
-  console.log(`Branch Push OK: ${branchUrl}`);
+  // console.log(`Branch Push OK: ${branchUrl}`);
   return { title, body, branch };
 }
 
@@ -334,22 +353,27 @@ async function fillDescription(referenceUrl: string, pyprojectToml: string) {
 }
 
 async function add_publish(dir: string, upstreamUrl: string, forkUrl: string) {
+  console.log("0");
   const branch = "publish";
   const tmpl = await readFile("./templates/add-action.md", "utf8");
   const { title, body } = parseTitleBodyOfMarkdown(tmpl);
   const repo = parseOwnerRepo(forkUrl);
+  console.log("1");
 
   if (await gh.repos.getBranch({ ...repo, branch }).catch(() => null)) {
     console.log("Skip changes as branch existed: " + branch);
     return { title, body, branch };
   }
 
+  console.log("2");
   const src = parseOwnerRepo(upstreamUrl);
   const cwd = `${dir}/${branch}/${src.repo}`; // src.repo is for keep correct directory name
 
+  console.log("3");
   const file = `${cwd}/.github/workflows/publish.yml`;
   const publishYmlPath = "./templates/publish.yaml";
 
+  console.log("before error")
   // commit & push changes
   await $`
 git clone ${upstreamUrl} ${cwd}
@@ -367,8 +391,9 @@ git commit -am "chore(${branch}): ${title}" && \
 git push "${forkUrl}" ${branch}:${branch}
     `;
 
-  const branchUrl = `https://github.com/${repo.owner}/${repo.repo}/tree/${branch}`;
-  console.log(`Branch Push OK: ${branchUrl}`);
+  // const branchUrl = `https://github.com/${repo.owner}/${repo.repo}/tree/${branch}`;
+  // console.log(`Branch Push OK: ${branchUrl}`);
+  console.log("after error")
   return { title, body, branch };
 }
 
@@ -390,7 +415,7 @@ async function fork(
   const forkedUrl =
     forkResult?.data.html_url ??
     "https://github.com/" + to.owner + "/" + to.repo;
-  console.log("FORK OK ", forkedUrl);
+  // console.log("FORK OK ", forkedUrl);
 }
 
 function parseOwnerRepo(name: string) {
