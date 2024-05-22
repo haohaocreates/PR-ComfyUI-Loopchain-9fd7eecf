@@ -1,0 +1,10 @@
+https://github.com/ltdrdata/ComfyUI-Manager
+https://github.com/ltdrdata/ComfyUI-Impact-Pack
+https://github.com/ltdrdata/ComfyUI-Inspire-Pack
+https://github.com/comfyanonymous/ComfyUI_experiments
+https://github.com/Stability-AI/ComfyUI-SAI_API
+https://github.com/Stability-AI/stability-ComfyUI-nodes
+https://github.com/Fannovel16/comfyui_controlnet_aux
+https://github.com/Fannovel16/ComfyUI-Frame-Interpolation
+https://github.com/Fannovel16/ComfyUI-Loopchain
+https://github.com/Fannovel16/ComfyUI-MotionDiff

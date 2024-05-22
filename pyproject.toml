@@ -1,0 +1,14 @@
+[project]
+name = "comfy-registry-pr"
+description = ""
+version = "1.0.0"
+license = "LICENSE"
+
+[project.urls]
+Repository = "https://github.com/drip-art/Comfy-Registry-PR"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[tool.comfy]
+PublisherId = ""
+DisplayName = "Comfy-Registry-PR"
+Icon = ""
