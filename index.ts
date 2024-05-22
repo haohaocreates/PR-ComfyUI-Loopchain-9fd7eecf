@@ -353,23 +353,19 @@ async function fillDescription(referenceUrl: string, pyprojectToml: string) {
 }
 
 async function add_publish(dir: string, upstreamUrl: string, forkUrl: string) {
-  console.log("0");
   const branch = "publish";
   const tmpl = await readFile("./templates/add-action.md", "utf8");
   const { title, body } = parseTitleBodyOfMarkdown(tmpl);
   const repo = parseOwnerRepo(forkUrl);
-  console.log("1");
 
   if (await gh.repos.getBranch({ ...repo, branch }).catch(() => null)) {
     console.log("Skip changes as branch existed: " + branch);
     return { title, body, branch };
   }
 
-  console.log("2");
   const src = parseOwnerRepo(upstreamUrl);
   const cwd = `${dir}/${branch}/${src.repo}`; // src.repo is for keep correct directory name
 
-  console.log("3");
   const file = `${cwd}/.github/workflows/publish.yml`;
   const publishYmlPath = "./templates/publish.yaml";
 
